@@ -1,21 +1,18 @@
-/* Filename:
- *      client.c
- *
- * Description:
- *      This program is used in tandem with server.c demonstrating the use of sockets to create a TCP client.
- *
- * Compile Instructions:
- *      `gcc -o client client.c'
- * 
- * Author:
- *      Raphael Garay
- *      rgaray@gbox.adnu.edu.ph
- *      Ateneo de Naga University
- *
- * Notes:
- *      This is a handout for CSMC312: Operating Systems
- *      First Sem S/Y 2024-2025
- */
+/*
+#----------------------------------------------------------------------------------------------------------------#
+# Filename : 202200598_LE10_server.c
+# Author : Gabriel Angelo B. Catimbang
+# Last Modified : 2024-12-05
+# Description : A simple client-server application that accepts and sends messages between the server and client.
+# Honor Code : This is my own program. I have not received any #
+# unauthorized help in completing this work. I have not #
+# copied from my classmate, friend, nor any unauthorized #
+# resource. I am well aware of the policies stipulated #
+# in the handbook regarding academic dishonesty. #
+# If proven guilty, I won't be credited any points for #
+# this exercise. #
+#-------------------------------------------------------------------------------------------------------------#
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,18 +41,17 @@ int main(int argc,  char *argv[]){
         exit(1);
     }
 
-    printf("Client starting ...\n");
+
     // Create a socket using TCP
     client_sock = socket(AF_INET,  SOCK_STREAM,  0);
     if (client_sock < 0) 
         die_with_error("Error: socket() Failed.");
 
-    printf("Looking for host '%s'...\n", argv[1]);
+    
     server = gethostbyname(argv[1]);
     if (server == NULL) {
         die_with_error("Error: No such host.");
     }
-    printf("Host found!\n");
 
     // Establish a connection to server
     port_no = atoi(argv[2]);
@@ -67,10 +63,12 @@ int main(int argc,  char *argv[]){
          
     server_addr.sin_port = htons(port_no);
 
-    printf("Connecting to server at port %d...\n", port_no);
+    printf("CLIENT STARTED: Looking for host '%s' at port %s \n", argv[1], argv[2]);
+
     if (connect(client_sock, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) 
         die_with_error("Error: connect() Failed.");
 
+    printf("\nConnected to server!\n\n");
 
     while(active){
         bzero(buffer, 256);
@@ -78,6 +76,8 @@ int main(int argc,  char *argv[]){
         if (n < 0) 
             die_with_error("Error: recv() Failed.");
         printf("[server] > %s", buffer);
+
+        buffer[strcspn(buffer, "\n")] = 0; 
         if (strcmp(buffer, "exit") == 0) {
             active = 0;
             break;
@@ -88,8 +88,14 @@ int main(int argc,  char *argv[]){
         n = send(client_sock, buffer, strlen(buffer), 0);
         if (n < 0) 
             die_with_error("Error: send() Failed.");
+        buffer[strcspn(buffer, "\n")] = 0; 
+        if (strcmp(buffer, "exit") == 0) {
+            active = 0;
+            break;
+        }
     }
 
+    printf("Connection closed!\n");
     close(client_sock);
     
     return 0;
